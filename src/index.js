@@ -1,6 +1,6 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
-const naas = require("./naasResponses");
+const naas = require("./phrases");
 
 const app = express();
 app.use(express.json());
@@ -12,7 +12,7 @@ app.use(rateLimit({
 
 const allowedMethods = ["GET", "POST", "PUT"];
 
-app.all("/:resource/:id?", (req, res) => {
+function handler(req, res) {
   const resource = req.params.resource;
   const method = req.method;
 
@@ -23,17 +23,19 @@ app.all("/:resource/:id?", (req, res) => {
   }
 
   const responses = naas[resource][method];
-
-  const answer = Array.isArray(responses)
-    ? responses[Math.floor(Math.random() * responses.length)]
-    : responses;
+  const answer = responses[
+    Math.floor(Math.random() * responses.length)
+  ];
 
   res.status(403).json({
     resource,
     method,
     answer
   });
-});
+}
+
+app.all("/:resource", handler);
+app.all("/:resource/:id", handler);
 
 app.get("/", (req, res) => {
   res.json({
